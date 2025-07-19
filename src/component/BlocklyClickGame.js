@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
@@ -7,7 +7,7 @@ import "blockly/msg/en";
 import "./styles.css";
 
 const BlocklyClickGame = () => {
-  const blocklyDiv = useRef(null);  
+  const blocklyDiv = useRef(null);
   const toolbox = useRef(null);
   const workspaceRef = useRef(null);
 
@@ -16,16 +16,12 @@ const BlocklyClickGame = () => {
   const [gameRunning, setGameRunning] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [difficulty, setDifficulty] = useState("easy");
-  const [highScores, setHighScores] = useState([]);
   const [playerName, setPlayerName] = useState("");
 
-  // ✅ Correct GET URL for fetching scores
   const fetchScores = async () => {
     try {
-      const response = await axios.get(
-         `${process.env.REACT_APP_BACKEND_URL}/api/scores`
-      );
-      setHighScores(response.data);
+      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/scores`);
+      // Removed setHighScores since the scores aren't displayed
     } catch (error) {
       console.error("Error fetching scores:", error);
     }
@@ -33,6 +29,7 @@ const BlocklyClickGame = () => {
 
   useEffect(() => {
     fetchScores();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getDelay = () => {
@@ -46,27 +43,22 @@ const BlocklyClickGame = () => {
     }
   };
 
-  // ✅ Correct POST URL for saving score
   const saveScoreToDB = async () => {
-  if (!playerName.trim()) {
-    alert("Please enter your player name before playing.");
-    return;
-  }
+    if (!playerName.trim()) {
+      alert("Please enter your player name before playing.");
+      return;
+    }
 
-  try {
-    await axios.post(
-  `${process.env.REACT_APP_BACKEND_URL}/api/scores`,
-      {
+    try {
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/scores`, {
         playerId: playerName,
         score: score,
-      }
-    );
-    fetchScores(); // Refresh score list
-  } catch (err) {
-    console.error("Error saving score:", err);
-  }
-};
-
+      });
+      fetchScores();
+    } catch (err) {
+      console.error("Error saving score:", err);
+    }
+  };
 
   const runCode = async () => {
     if (gameRunning) return;
@@ -132,6 +124,7 @@ const BlocklyClickGame = () => {
     }, 1000);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, gameRunning]);
 
   const restartGame = () => {
@@ -175,9 +168,7 @@ const BlocklyClickGame = () => {
 
     Blockly.Blocks["controls_wait"] = {
       init: function () {
-        this.appendValueInput("TIME")
-          .setCheck("Number")
-          .appendField("wait (ms)");
+        this.appendValueInput("TIME").setCheck("Number").appendField("wait (ms)");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setColour(120);

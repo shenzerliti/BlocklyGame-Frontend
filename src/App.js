@@ -1,4 +1,4 @@
-import react from "react";
+
 import BlocklyClickGame from "./component/BlocklyClickGame";
 
 
