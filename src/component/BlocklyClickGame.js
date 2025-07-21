@@ -21,7 +21,6 @@ const BlocklyClickGame = () => {
   const fetchScores = async () => {
     try {
       await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/scores`);
-      // Removed setHighScores since the scores aren't displayed
     } catch (error) {
       console.error("Error fetching scores:", error);
     }
@@ -29,7 +28,6 @@ const BlocklyClickGame = () => {
 
   useEffect(() => {
     fetchScores();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getDelay = () => {
@@ -110,6 +108,67 @@ const BlocklyClickGame = () => {
   };
 
   useEffect(() => {
+    if (!workspaceRef.current) {
+      const initCustomBlocks = () => {
+        Blockly.Blocks["move_target_random"] = {
+          init: function () {
+            this.appendDummyInput().appendField("move target randomly");
+            this.setPreviousStatement(true, null);
+            this.setNextStatement(true, null);
+            this.setColour(230);
+          },
+        };
+
+        javascriptGenerator.forBlock["move_target_random"] = () => {
+          return "moveTargetRandom();\n";
+        };
+
+        Blockly.Blocks["increase_score"] = {
+          init: function () {
+            this.appendDummyInput().appendField("increase score");
+            this.setPreviousStatement(true, null);
+            this.setNextStatement(true, null);
+            this.setColour(160);
+          },
+        };
+
+        javascriptGenerator.forBlock["increase_score"] = () => {
+          return "increaseScore();\n";
+        };
+
+        Blockly.Blocks["controls_wait"] = {
+          init: function () {
+            this.appendValueInput("TIME").setCheck("Number").appendField("wait (ms)");
+            this.setPreviousStatement(true, null);
+            this.setNextStatement(true, null);
+            this.setColour(120);
+          },
+        };
+
+        javascriptGenerator.forBlock["controls_wait"] = () => {
+          const delay = getDelay();
+          return `await new Promise(r => setTimeout(r, ${delay}));\n`;
+        };
+      };
+
+      initCustomBlocks();
+
+      const workspace = Blockly.inject(blocklyDiv.current, {
+        toolbox: toolbox.current,
+      });
+      workspaceRef.current = workspace;
+    }
+  }, []);
+
+  useEffect(() => {
+    window.moveTargetRandom = moveTargetRandom;
+    window.increaseScore = () => {
+      if (!gameRunning) return;
+      setScore((prev) => prev + 1);
+    };
+  }, [gameRunning]);
+
+  useEffect(() => {
     if (!gameRunning) return;
 
     if (timeLeft <= 0) {
@@ -124,62 +183,7 @@ const BlocklyClickGame = () => {
     }, 1000);
 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, gameRunning]);
-
-  const restartGame = () => {
-    setShowPopup(false);
-    setScore(0);
-    setTimeLeft(25);
-    setGameRunning(true);
-
-    const code = javascriptGenerator.workspaceToCode(workspaceRef.current);
-    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-    const run = new AsyncFunction(code);
-    run().catch(console.error);
-  };
-
-  const initCustomBlocks = () => {
-    Blockly.Blocks["move_target_random"] = {
-      init: function () {
-        this.appendDummyInput().appendField("move target randomly");
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setColour(230);
-      },
-    };
-
-    javascriptGenerator.forBlock["move_target_random"] = () => {
-      return "moveTargetRandom();\n";
-    };
-
-    Blockly.Blocks["increase_score"] = {
-      init: function () {
-        this.appendDummyInput().appendField("increase score");
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setColour(160);
-      },
-    };
-
-    javascriptGenerator.forBlock["increase_score"] = () => {
-      return "increaseScore();\n";
-    };
-
-    Blockly.Blocks["controls_wait"] = {
-      init: function () {
-        this.appendValueInput("TIME").setCheck("Number").appendField("wait (ms)");
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setColour(120);
-      },
-    };
-
-    javascriptGenerator.forBlock["controls_wait"] = () => {
-      const delay = getDelay();
-      return `await new Promise(r => setTimeout(r, ${delay}));\n`;
-    };
-  };
 
   const moveTargetRandom = () => {
     const target = document.getElementById("target");
@@ -195,121 +199,130 @@ const BlocklyClickGame = () => {
     target.style.top = `${y}px`;
   };
 
- const increaseScore = () => {
-  if (!gameRunning) return;
-  setScore((prev) => prev + 1);
-};
-useEffect(() => {
-  window.moveTargetRandom = moveTargetRandom;
+  const restartGame = () => {
+    setShowPopup(false);
+    setScore(0);
+    setTimeLeft(25);
+    setGameRunning(true);
 
-  // Ensure latest state is used
-  window.increaseScore = () => {
-    if (!gameRunning) return;
-    setScore((prev) => prev + 1);
+    const code = javascriptGenerator.workspaceToCode(workspaceRef.current);
+    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+    const run = new AsyncFunction(code);
+    run().catch(console.error);
   };
-}, [gameRunning]); 
 
-  useEffect(() => {
-    if (!workspaceRef.current) {
-      initCustomBlocks();
-      const workspace = Blockly.inject(blocklyDiv.current, {
-        toolbox: toolbox.current,
-      });
-      workspaceRef.current = workspace;
-    }
-  }, [initCustomBlocks]);
+  return (
+    <div style={{ padding: "20px" }}>
+      <h2 className="heading">Blockly Click Target Game</h2>
 
-return (
-  <div style={{ padding: "20px" }}>
-    <h2 className="heading"> Blockly Click Target Game</h2>
+      <div style={{ marginBottom: "20px" }}>
+        <label>🎮 Difficulty:</label>
+        <select
+          onChange={(e) => setDifficulty(e.target.value)}
+          value={difficulty}
+          style={{ marginLeft: "10px", padding: "5px" }}
+        >
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
 
-    <div style={{ marginBottom: "20px" }}>
-      <label>🎮 Difficulty:</label>
-      <select
-        onChange={(e) => setDifficulty(e.target.value)}
-        value={difficulty}
-        style={{ marginLeft: "10px", padding: "5px" }}
-      >
-        <option value="easy">Easy</option>
-        <option value="medium">Medium</option>
-        <option value="hard">Hard</option>
-      </select>
-    </div>
+      <div style={{ marginBottom: "15px" }}>
+        <label htmlFor="playerName">🧑 Enter Player Name: </label>
+        <input
+          id="playerName"
+          type="text"
+          value={playerName}
+          onChange={(e) => setPlayerName(e.target.value)}
+          placeholder="Enter name"
+          style={{
+            padding: "6px",
+            borderRadius: "4px",
+            marginLeft: "10px",
+            border: "1px solid #ccc",
+          }}
+        />
+      </div>
 
-    <div style={{ marginBottom: "15px" }}>
-      <label htmlFor="playerName">🧑 Enter Player Name: </label>
-      <input
-        id="playerName"
-        type="text"
-        value={playerName}
-        onChange={(e) => setPlayerName(e.target.value)}
-        placeholder="Enter name"
-        style={{
-          padding: "6px",
-          borderRadius: "4px",
-          marginLeft: "10px",
-          border: "1px solid #ccc",
-        }}
-      />
-    </div>
+      <div className="main-container">
+        <div id="blocklyDiv" ref={blocklyDiv}></div>
 
-    <div className="main-container">
-      {/* Blockly Workspace */}
-      <div id="blocklyDiv" ref={blocklyDiv}></div>
+        <div>
+          <div className="game-area">
+            <div
+              id="target"
+              onClick={() => window.increaseScore()}
+              style={{
+                position: "absolute",
+                width: "70px",
+                height: "70px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              <img
+                src="./images/target.jpg"
+                alt="target"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            </div>
+          </div>
 
-      {/* Game area and info */}
-      <div>
-        <div className="game-area">
-          <div id="target" onClick={increaseScore} style={{  position: "absolute",  width: "70px", height: "70px", cursor: "pointer", transition: "all 0.2s ease", }} >
-            <img src="./images/target.jpg" alt="target"  style={{  width: "100%", height: "100%", objectFit: "contain",  }} />
+          <div className="info-panel">
+            <p>⏳ Time Left: {timeLeft}s</p>
+            <p>🏆 Score: {score}</p>
           </div>
         </div>
-
-        <div className="info-panel">
-          <p>⏳ Time Left: {timeLeft}s</p>
-          <p>🏆 Score: {score}</p>
-        </div>
       </div>
+
+      <xml
+        xmlns="https://developers.google.com/blockly/xml"
+        style={{ display: "none" }}
+        ref={toolbox}
+      >
+        <category name="Game Actions" colour="#5CA699">
+          <block type="move_target_random" />
+          <block type="increase_score" />
+        </category>
+        <category name="Control" colour="%{BKY_LOGIC_HUE}">
+          <block type="controls_repeat_ext">
+            <value name="TIMES">
+              <shadow type="math_number">
+                <field name="NUM">10</field>
+              </shadow>
+            </value>
+          </block>
+          <block type="controls_wait" />
+        </category>
+        <category name="Math" colour="%{BKY_MATH_HUE}">
+          <block type="math_number" />
+          <block type="math_arithmetic" />
+        </category>
+      </xml>
+
+      <button onClick={runCode} disabled={gameRunning}>
+        ▶️ Run Blockly Code
+      </button>
+
+      {showPopup && (
+        <div className="popup-overlay">
+          <div className="popup">
+            <h2>⏰ Time's Up!</h2>
+            <p>
+              Your final score is: <strong>{score}</strong>
+            </p>
+            <button onClick={restartGame}>Restart Game</button>
+            <button onClick={() => setShowPopup(false)}>❌ Close</button>
+          </div>
+        </div>
+      )}
     </div>
-
-    <xml xmlns="https://developers.google.com/blockly/xml" style={{ display: "none" }} ref={toolbox} >
-
-      <category name="Game Actions" colour="#5CA699">
-        <block type="move_target_random" />
-        <block type="increase_score" />
-      </category>
-      <category name="Control" colour="%{BKY_LOGIC_HUE}">
-        <block type="controls_repeat_ext">
-          <value name="TIMES">
-            <shadow type="math_number">
-              <field name="NUM">10</field>
-            </shadow>
-          </value>
-        </block>
-        <block type="controls_wait" />
-      </category>
-      <category name="Math" colour="%{BKY_MATH_HUE}">
-        <block type="math_number" />
-        <block type="math_arithmetic" />
-      </category>
-    </xml>
-
-    <button onClick={runCode} disabled={gameRunning}>
-      ▶️ Run Blockly Code
-    </button>
-
-    {showPopup && (
-      <div className="popup-overlay">
-        <div className="popup">
-          <h2>⏰ Time's Up!</h2>
-          <p>Your final score is: <strong>{score}</strong></p>
-          <button onClick={restartGame}>Restart Game</button>
-          <button onClick={() => setShowPopup(false)}>❌ Close</button>
-        </div>
-      </div>
-    )}
-  </div>
-);
+  );
 };
 
 export default BlocklyClickGame;
