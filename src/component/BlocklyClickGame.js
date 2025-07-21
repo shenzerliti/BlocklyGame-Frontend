@@ -41,22 +41,23 @@ const BlocklyClickGame = () => {
     }
   }, [difficulty]);
 
-  const saveScoreToDB = async () => {
-    if (!playerName.trim()) {
-      alert("Please enter your player name before playing.");
-      return;
-    }
 
-    try {
-      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/scores`, {
-        playerId: playerName,
-        score: score,
-      });
-      fetchScores();
-    } catch (err) {
-      console.error("Error saving score:", err);
-    }
-  };
+const saveScoreToDB = useCallback(async () => {
+  if (!playerName.trim()) {
+    alert("Please enter your player name before playing.");
+    return;
+  }
+  try {
+    await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/scores`, {
+      playerId: playerName,
+      score: score,
+    });
+    fetchScores(); // Make sure fetchScores doesn't need to be wrapped as well
+  } catch (err) {
+    console.error("Error saving score:", err);
+  }
+}, [playerName, score, fetchScores]);
+
 
   const runCode = async () => {
     if (gameRunning) return;
@@ -183,8 +184,8 @@ const BlocklyClickGame = () => {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [timeLeft, gameRunning]);
-
+  },  [gameRunning, timeLeft, saveScoreToDB]);
+  
   const moveTargetRandom = () => {
     const target = document.getElementById("target");
     const container = target.parentElement;
