@@ -195,16 +195,19 @@ const BlocklyClickGame = () => {
     target.style.top = `${y}px`;
   };
 
-  const increaseScore = (manual = false) => {
-    if (manual && gameRunning) {
-      setScore((prev) => prev + 1);
-    }
-  };
+ const increaseScore = () => {
+  if (!gameRunning) return;
+  setScore((prev) => prev + 1);
+};
+useEffect(() => {
+  window.moveTargetRandom = moveTargetRandom;
 
-  useEffect(() => {
-    window.moveTargetRandom = moveTargetRandom;
-    window.increaseScore = increaseScore;
-  }, []);
+  // Ensure latest state is used
+  window.increaseScore = () => {
+    if (!gameRunning) return;
+    setScore((prev) => prev + 1);
+  };
+}, [gameRunning]); 
 
   useEffect(() => {
     if (!workspaceRef.current) {
@@ -216,113 +219,97 @@ const BlocklyClickGame = () => {
     }
   }, []);
 
-  return (
-    <div style={{ padding: "20px" }}>
-      <h2 className="heading">🎯 Blockly Click Target Game</h2>
+return (
+  <div style={{ padding: "20px" }}>
+    <h2 className="heading"> Blockly Click Target Game</h2>
 
-      <div style={{ marginBottom: "20px" }}>
-        <label>🎮 Difficulty:</label>
-        <select
-          onChange={(e) => setDifficulty(e.target.value)}
-          value={difficulty}
-          style={{ marginLeft: "10px", padding: "5px" }}
-        >
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
-      </div>
-
-      <div style={{ marginBottom: "15px" }}>
-        <label htmlFor="playerName">🧑 Enter Player Name: </label>
-        <input
-          id="playerName"
-          type="text"
-          value={playerName}
-          onChange={(e) => setPlayerName(e.target.value)}
-          placeholder="Enter name"
-          style={{
-            padding: "6px",
-            borderRadius: "4px",
-            marginLeft: "10px",
-            border: "1px solid #ccc",
-          }}
-        />
-      </div>
-
-      <div style={{ display: "flex", gap: "30px" }}>
-        <div
-          ref={blocklyDiv}
-          style={{ height: 400, width: 600, border: "1px solid #ccc" }}
-        ></div>
-
-        <div className="game-area">
-          <div
-            id="target"
-            onClick={() => increaseScore(true)}
-            style={{
-              position: "absolute",
-              width: "70px",
-              height: "70px",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-          >
-            <img
-              src="./images/target.jpg"
-              alt="target"
-              style={{ width: "100%", height: "100%", objectFit: "contain" }}
-            />
-          </div>
-        </div>
-      </div>
-
-      <xml
-        xmlns="https://developers.google.com/blockly/xml"
-        style={{ display: "none" }}
-        ref={toolbox}
+    <div style={{ marginBottom: "20px" }}>
+      <label>🎮 Difficulty:</label>
+      <select
+        onChange={(e) => setDifficulty(e.target.value)}
+        value={difficulty}
+        style={{ marginLeft: "10px", padding: "5px" }}
       >
-        <category name="Game Actions" colour="#5CA699">
-          <block type="move_target_random" />
-          <block type="increase_score" />
-        </category>
-        <category name="Control" colour="%{BKY_LOGIC_HUE}">
-          <block type="controls_repeat_ext">
-            <value name="TIMES">
-              <shadow type="math_number">
-                <field name="NUM">10</field>
-              </shadow>
-            </value>
-          </block>
-          <block type="controls_wait" />
-        </category>
-        <category name="Math" colour="%{BKY_MATH_HUE}">
-          <block type="math_number" />
-          <block type="math_arithmetic" />
-        </category>
-      </xml>
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+    </div>
 
-      <button onClick={runCode} disabled={gameRunning}>
-        ▶️ Run Blockly Code
-      </button>
+    <div style={{ marginBottom: "15px" }}>
+      <label htmlFor="playerName">🧑 Enter Player Name: </label>
+      <input
+        id="playerName"
+        type="text"
+        value={playerName}
+        onChange={(e) => setPlayerName(e.target.value)}
+        placeholder="Enter name"
+        style={{
+          padding: "6px",
+          borderRadius: "4px",
+          marginLeft: "10px",
+          border: "1px solid #ccc",
+        }}
+      />
+    </div>
 
-      <div className="info-panel">
-        <p>⏳ Time Left: {timeLeft}s</p>
-        <p>🏆 Score: {score}</p>
-      </div>
+    <div className="main-container">
+      {/* Blockly Workspace */}
+      <div id="blocklyDiv" ref={blocklyDiv}></div>
 
-      {showPopup && (
-        <div className="popup-overlay">
-          <div className="popup">
-            <h2>⏰ Time's Up!</h2>
-            <p>Your final score is: <strong>{score}</strong></p>
-            <button onClick={restartGame}>Restart Game</button>
-            <button onClick={() => setShowPopup(false)}>❌ Close</button>
+      {/* Game area and info */}
+      <div>
+        <div className="game-area">
+          <div id="target" onClick={increaseScore} style={{  position: "absolute",  width: "70px", height: "70px", cursor: "pointer", transition: "all 0.2s ease", }} >
+            <img src="./images/target.jpg" alt="target"  style={{  width: "100%", height: "100%", objectFit: "contain",  }} />
           </div>
         </div>
-      )}
+
+        <div className="info-panel">
+          <p>⏳ Time Left: {timeLeft}s</p>
+          <p>🏆 Score: {score}</p>
+        </div>
+      </div>
     </div>
-  );
+
+    <xml xmlns="https://developers.google.com/blockly/xml" style={{ display: "none" }} ref={toolbox} >
+
+      <category name="Game Actions" colour="#5CA699">
+        <block type="move_target_random" />
+        <block type="increase_score" />
+      </category>
+      <category name="Control" colour="%{BKY_LOGIC_HUE}">
+        <block type="controls_repeat_ext">
+          <value name="TIMES">
+            <shadow type="math_number">
+              <field name="NUM">10</field>
+            </shadow>
+          </value>
+        </block>
+        <block type="controls_wait" />
+      </category>
+      <category name="Math" colour="%{BKY_MATH_HUE}">
+        <block type="math_number" />
+        <block type="math_arithmetic" />
+      </category>
+    </xml>
+
+    <button onClick={runCode} disabled={gameRunning}>
+      ▶️ Run Blockly Code
+    </button>
+
+    {showPopup && (
+      <div className="popup-overlay">
+        <div className="popup">
+          <h2>⏰ Time's Up!</h2>
+          <p>Your final score is: <strong>{score}</strong></p>
+          <button onClick={restartGame}>Restart Game</button>
+          <button onClick={() => setShowPopup(false)}>❌ Close</button>
+        </div>
+      </div>
+    )}
+  </div>
+);
 };
 
 export default BlocklyClickGame;
