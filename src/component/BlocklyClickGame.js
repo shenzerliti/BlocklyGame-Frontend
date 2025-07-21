@@ -217,7 +217,7 @@ useEffect(() => {
       });
       workspaceRef.current = workspace;
     }
-  }, []);
+  }, [initCustomBlocks]);
 
 return (
   <div style={{ padding: "20px" }}>
