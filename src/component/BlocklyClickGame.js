@@ -275,6 +275,10 @@ const BlocklyClickGame = () => {
           <div className="info-panel">
             <p>⏳ Time Left: {timeLeft}s</p>
             <p>🏆 Score: {score}</p>
+
+               <button onClick={runCode} disabled={gameRunning}>
+        ▶️ Run Blockly Code
+      </button>
           </div>
         </div>
       </div>
@@ -304,9 +308,6 @@ const BlocklyClickGame = () => {
         </category>
       </xml>
 
-      <button onClick={runCode} disabled={gameRunning}>
-        ▶️ Run Blockly Code
-      </button>
 
       {showPopup && (
         <div className="popup-overlay">
