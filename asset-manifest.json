@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/BlocklyGame/static/css/main.40b0317c.css",
+    "main.js": "/BlocklyGame/static/js/main.9c21f91c.js",
+    "index.html": "/BlocklyGame/index.html",
+    "main.40b0317c.css.map": "/BlocklyGame/static/css/main.40b0317c.css.map",
+    "main.9c21f91c.js.map": "/BlocklyGame/static/js/main.9c21f91c.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.40b0317c.css",
+    "static/js/main.9c21f91c.js"
+  ]
+}
