@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState , useCallback} from "react";
 import axios from "axios";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
@@ -30,7 +30,7 @@ const BlocklyClickGame = () => {
     fetchScores();
   }, []);
 
-  const getDelay = () => {
+  const getDelay = useCallback (() => {
     switch (difficulty) {
       case "hard":
         return 300;
@@ -39,7 +39,7 @@ const BlocklyClickGame = () => {
       default:
         return 1000;
     }
-  };
+  }, [difficulty]);
 
   const saveScoreToDB = async () => {
     if (!playerName.trim()) {
@@ -158,7 +158,7 @@ const BlocklyClickGame = () => {
       });
       workspaceRef.current = workspace;
     }
-  }, []);
+  }, [getDelay]);
 
   useEffect(() => {
     window.moveTargetRandom = moveTargetRandom;
