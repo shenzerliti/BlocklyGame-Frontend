@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState , useCallback} from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import axios from "axios";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
@@ -18,19 +18,7 @@ const BlocklyClickGame = () => {
   const [difficulty, setDifficulty] = useState("easy");
   const [playerName, setPlayerName] = useState("");
 
-  const fetchScores = async () => {
-    try {
-      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/scores`);
-    } catch (error) {
-      console.error("Error fetching scores:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchScores();
-  }, []);
-
-  const getDelay = useCallback (() => {
+  const getDelay = useCallback(() => {
     switch (difficulty) {
       case "hard":
         return 300;
@@ -41,23 +29,33 @@ const BlocklyClickGame = () => {
     }
   }, [difficulty]);
 
+  const fetchScores = useCallback(async () => {
+    try {
+      await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/scores`);
+    } catch (error) {
+      console.error("Error fetching scores:", error);
+    }
+  }, []);
 
-const saveScoreToDB = useCallback(async () => {
-  if (!playerName.trim()) {
-    alert("Please enter your player name before playing.");
-    return;
-  }
-  try {
-    await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/scores`, {
-      playerId: playerName,
-      score: score,
-    });
-    fetchScores(); // Make sure fetchScores doesn't need to be wrapped as well
-  } catch (err) {
-    console.error("Error saving score:", err);
-  }
-}, [playerName, score, fetchScores]);
+  useEffect(() => {
+    fetchScores();
+  }, [fetchScores]);
 
+  const saveScoreToDB = useCallback(async () => {
+    if (!playerName.trim()) {
+      alert("Please enter your player name before playing.");
+      return;
+    }
+    try {
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/scores`, {
+        playerId: playerName,
+        score,
+      });
+      fetchScores();
+    } catch (err) {
+      console.error("Error saving score:", err);
+    }
+  }, [playerName, score, fetchScores]);
 
   const runCode = async () => {
     if (gameRunning) return;
@@ -184,8 +182,8 @@ const saveScoreToDB = useCallback(async () => {
     }, 1000);
 
     return () => clearTimeout(timer);
-  },  [gameRunning, timeLeft, saveScoreToDB]);
-  
+  }, [gameRunning, timeLeft, saveScoreToDB]);
+
   const moveTargetRandom = () => {
     const target = document.getElementById("target");
     const container = target.parentElement;
