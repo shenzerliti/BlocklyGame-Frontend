@@ -8,7 +8,7 @@ function App() {
   return (
     <div className="App">
       <BlocklyClickGame/>
-      <h1>hello world</h1>
+      <h1 style={{color:'green'}}>react is rendering</h1>
     </div>
   );
 }

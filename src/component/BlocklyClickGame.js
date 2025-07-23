@@ -261,7 +261,7 @@ const BlocklyClickGame = () => {
               }}
             >
               <img
-                src="./images/target.jpg"
+                src="/images/target.jpg"
                 alt="target"
                 style={{
                   width: "100%",
