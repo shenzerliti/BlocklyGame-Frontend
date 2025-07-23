@@ -2,7 +2,7 @@
   "name": "blockly-app",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/BlocklyGame-Frontend",
+  "homepage": "https://shenzerliti.github.io/BlocklyGame-Frontend",
 
   "dependencies": {
     "@blockly/field-date": "^10.0.1",
