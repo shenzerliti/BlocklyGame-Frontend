@@ -1,5 +1,5 @@
 
-import BlocklyClickGame from "./component/BlocklyClickGame";
+// import BlocklyClickGame from "./component/BlocklyClickGame";
 
 
 
